@@ -35,6 +35,13 @@ func main() {
 	if clix.Type == "auto" {
 		if clix.Dir == "Stillness Speaks" {
 			//此处获取云端字典并赋值给clix.Dir
+
+			/*
+				我在GitHub上发现一些字典比较好
+				想写一个服务监控别人仓库的更新（单个文件）
+
+				如果仓库更新则下载最新字典
+			*/
 		} else {
 			file, err := model.ReadFile(clix.Dir)
 			if err != nil {
