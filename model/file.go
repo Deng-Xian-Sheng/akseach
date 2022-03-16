@@ -38,3 +38,14 @@ func GetOsFile(path string) (*os.File, error) {
 	}
 	return file, nil
 }
+
+//判断文件或目录是否存在
+func IfFileDir(path string) bool {
+	_, err := os.Stat(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
+}
