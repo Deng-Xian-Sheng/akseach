@@ -27,7 +27,7 @@ func Clix() (*ReturnInfo, error) {
 		},
 		Copyright: "(c) GPL-3.0 License",
 		Usage:     "A catalog collection scanning tool",
-		UsageText: "./xxx [command] [global options]",
+		UsageText: "./xxx [global options] [command]",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "url",

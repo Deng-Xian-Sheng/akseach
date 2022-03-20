@@ -1,20 +1,34 @@
 package model
 
-import "encoding/base64"
+import (
+	"encoding/base64"
+	"github.com/tidwall/gjson"
+	"path/filepath"
+	"regexp"
+)
 
 var (
-	DefaultDictionaries = "./defDic.txt"
+	DefaultDictionaries = "defDic_"
+	GithubWarehouse     = "TheKingOfDuck/fuzzDicts"
 	GithubDictionaries1 = "https://github.com/TheKingOfDuck/fuzzDicts/raw/master/directoryDicts/top7000.txt"
 	GithubDictionaries2 = "https://github.com/TheKingOfDuck/fuzzDicts/raw/master/directoryDicts/vuls/all.txt"
 	GithubAgent         = "https://service-hdekv5a8-1301929310.hk.apigw.tencentcs.com/release/GithubRaw/"
 )
 
-func updateDictionaries() string {
+func updateDictionaries(update bool) string {
+	if update {
+		defer func() {
+			if err := recover(); err != nil {
+				ErrorLog.Println(err)
+				ErrorLog.Println("Dictionaries Update fail, but can use old")
+			}
+		}()
+	}
 	InfoLog.Println("Get Cloud Dictionaries ....")
 	var Dictionaries string
 	bytes, err := Get(GithubDictionaries1)
 	if err == nil {
-		decodeString, err := base64.StdEncoding.DecodeString(string(bytes))
+		decodeString, err := base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 		if err != nil {
 			PanicLog.Panic(err)
 		}
@@ -24,9 +38,9 @@ func updateDictionaries() string {
 		InfoLog.Println("Test use vpn ....")
 		bytes, err = Get(GithubAgent + GithubDictionaries1)
 		if err != nil {
-			PanicLog.Panic("Not Get Cloud Dictionaries!")
+			ErrorLog.Fatal("Not Get Cloud Dictionaries!")
 		}
-		decodeString, err := base64.StdEncoding.DecodeString(string(bytes))
+		decodeString, err := base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 		if err != nil {
 			PanicLog.Panic(err)
 		}
@@ -34,9 +48,9 @@ func updateDictionaries() string {
 
 		bytes, err = Get(GithubAgent + GithubDictionaries2)
 		if err != nil {
-			PanicLog.Panic("Not Get Cloud Dictionaries!")
+			ErrorLog.Fatal("Not Get Cloud Dictionaries!")
 		}
-		decodeString, err = base64.StdEncoding.DecodeString(string(bytes))
+		decodeString, err = base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 		if err != nil {
 			PanicLog.Panic(err)
 		}
@@ -46,7 +60,7 @@ func updateDictionaries() string {
 	if err != nil {
 		PanicLog.Panic(err)
 	}
-	decodeString, err := base64.StdEncoding.DecodeString(string(bytes))
+	decodeString, err := base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 	if err != nil {
 		PanicLog.Panic(err)
 	}
@@ -54,11 +68,53 @@ func updateDictionaries() string {
 }
 
 func UpdateDictionaries() {
-	if IfFileDir(DefaultDictionaries) {
-		updateDictionaries()
-		//此处写入字典
-	} else {
-		//此处检测字典更新
-		//计划通过字典文件的文件名记录版本。
+	files, err := filepath.Glob("*")
+	if err != nil {
+		PanicLog.Panic(err)
 	}
+	reg := DefaultDictionaries + `[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}Z\.txt`
+	var resultSlice []string
+	for _, v := range files {
+		if match, err := regexp.Match(reg, []byte(v)); err == nil && match == true {
+			resultSlice = append(resultSlice, v)
+		}
+	}
+	if len(resultSlice) == 0 {
+		dictionaries := updateDictionaries(false)
+		scan, err := UpdateScan(GithubWarehouse)
+		if err != nil {
+			PanicLog.Panic(err)
+		}
+		err = WriteFile(DefaultDictionaries+scan+".txt", []byte(dictionaries))
+		if err != nil {
+			PanicLog.Panic(err)
+		}
+		InfoLog.Println("Create dictionaries success!")
+		return
+	}
+	if len(resultSlice) >= 2 {
+		ErrorLog.Fatal("There are multiple dictionary files: ", resultSlice)
+	}
+	compile := regexp.MustCompile(DefaultDictionaries + `([0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}Z)\.txt`)
+	if compile == nil {
+		PanicLog.Panic("MustCompile err")
+	}
+	submatch := compile.FindAllStringSubmatch(resultSlice[0], -1)
+	scan, err := UpdateScan(GithubWarehouse)
+	if err != nil {
+		ErrorLog.Println(err)
+		ErrorLog.Println("Dictionaries Update fail, but can use old")
+		return
+	}
+	if submatch[0][1] != scan {
+		dictionaries := updateDictionaries(true)
+		err = WriteFile(DefaultDictionaries+scan+".txt", []byte(dictionaries))
+		if err != nil {
+			PanicLog.Panic(err)
+		}
+		InfoLog.Println("Update dictionaries success!")
+		return
+	}
+	InfoLog.Println("Dictionaries is very new!")
+	return
 }

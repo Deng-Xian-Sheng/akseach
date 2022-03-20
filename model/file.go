@@ -10,6 +10,7 @@ func ReadFile(path string) (*bufio.Scanner, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer file.Close()
 	scanner := bufio.NewScanner(file)
 	return scanner, nil
 }
@@ -19,6 +20,7 @@ func WriteFile(path string, data []byte) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	writer := bufio.NewWriter(file)
 	_, err = writer.Write(data)
 	if err != nil {

@@ -4,7 +4,6 @@ import (
 	"akseach/model"
 	"bufio"
 	"log"
-	"os"
 )
 
 func bufioScannerToString(file *bufio.Scanner) string {
@@ -24,14 +23,10 @@ func main() {
 	if model.LogOsFileErr != nil {
 		log.Panic(model.LogOsFileErr)
 	}
-	defer func() {
-		os.File.Close(model.PanicLog)
-		os.File.Close(model.ErrorLog)
-		os.File.Close(model.InfoLog)
-	}()
+	defer model.LogOsFile.Close()
 	clix, err := model.Clix()
 	if err != nil {
-		model.PanicLog.Panic(err)
+		model.ErrorLog.Fatal(err)
 	}
 	if clix.Type == "auto" {
 		if clix.Dir == "Stillness Speaks" {
