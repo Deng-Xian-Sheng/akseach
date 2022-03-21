@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/base64"
 	"github.com/tidwall/gjson"
+	"os"
 	"path/filepath"
 	"regexp"
 )
@@ -66,11 +67,10 @@ func updateDictionaries(update bool) string {
 	}
 	return Dictionaries + "\n" + string(decodeString)
 }
-
-func UpdateDictionaries() {
+func SearchDictionariesFile() ([]string, error) {
 	files, err := filepath.Glob("*")
 	if err != nil {
-		PanicLog.Panic(err)
+		return nil, err
 	}
 	reg := DefaultDictionaries + `[0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}Z\.txt`
 	var resultSlice []string
@@ -78,6 +78,13 @@ func UpdateDictionaries() {
 		if match, err := regexp.Match(reg, []byte(v)); err == nil && match == true {
 			resultSlice = append(resultSlice, v)
 		}
+	}
+	return resultSlice, nil
+}
+func UpdateDictionaries() {
+	resultSlice, err := SearchDictionariesFile()
+	if err != nil {
+		PanicLog.Panic(err)
 	}
 	if len(resultSlice) == 0 {
 		dictionaries := updateDictionaries(false)
@@ -109,6 +116,10 @@ func UpdateDictionaries() {
 	if submatch[0][1] != scan {
 		dictionaries := updateDictionaries(true)
 		err = WriteFile(DefaultDictionaries+scan+".txt", []byte(dictionaries))
+		if err != nil {
+			PanicLog.Panic(err)
+		}
+		err := os.Remove(submatch[0][1])
 		if err != nil {
 			PanicLog.Panic(err)
 		}

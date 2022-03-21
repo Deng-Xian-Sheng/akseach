@@ -3,20 +3,18 @@ package main
 import (
 	"akseach/model"
 	"bufio"
+	"fmt"
 	"log"
+	"strings"
 )
 
-func bufioScannerToString(file *bufio.Scanner) string {
-	var content string
+func bufioScannerToString(file *bufio.Scanner) []string {
 	file.Split(bufio.ScanLines)
+	var slice []string
 	for file.Scan() {
-		if content == "" {
-			content = content + file.Text()
-		} else {
-			content = content + "\n" + file.Text()
-		}
+		slice = append(slice, file.Text())
 	}
-	return content
+	return slice
 }
 
 func main() {
@@ -28,21 +26,65 @@ func main() {
 	if err != nil {
 		model.ErrorLog.Fatal(err)
 	}
-	if clix.Type == "auto" {
+	var Dir, Url []string
+	switch clix.Type {
+	case "auto":
 		if clix.Dir == "Stillness Speaks" {
 			model.UpdateDictionaries()
+			dictionariesFile, err := model.SearchDictionariesFile()
+			if err != nil {
+				model.PanicLog.Panic(err)
+			}
+			if len(dictionariesFile) == 0 {
+				model.ErrorLog.Fatal("not found defaultDictionaries file")
+			}
+			if len(dictionariesFile) >= 2 {
+				model.ErrorLog.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+			}
+			file, err := model.ReadFile(dictionariesFile[0])
+			if err != nil {
+				model.PanicLog.Panic(err)
+			}
+			Dir = bufioScannerToString(file)
 		} else {
 			file, err := model.ReadFile(clix.Dir)
 			if err != nil {
 				model.PanicLog.Panic(err)
 			}
-			clix.Dir = bufioScannerToString(file)
+			Dir = bufioScannerToString(file)
 		}
 		file, err := model.ReadFile(clix.Url)
 		if err != nil {
 			model.PanicLog.Panic(err)
 		}
-		clix.Url = bufioScannerToString(file)
+		Url = bufioScannerToString(file)
+		break
+	default:
+		if clix.Dir == "Stillness Speaks" {
+			model.UpdateDictionaries()
+			dictionariesFile, err := model.SearchDictionariesFile()
+			if err != nil {
+				model.PanicLog.Panic(err)
+			}
+			if len(dictionariesFile) == 0 {
+				model.ErrorLog.Fatal("not found defaultDictionaries file")
+			}
+			if len(dictionariesFile) >= 2 {
+				model.ErrorLog.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+			}
+			file, err := model.ReadFile(dictionariesFile[0])
+			if err != nil {
+				model.PanicLog.Panic(err)
+			}
+			Dir = bufioScannerToString(file)
+		} else {
+			file, err := model.ReadFile(clix.Dir)
+			if err != nil {
+				model.PanicLog.Panic(err)
+			}
+			Dir = bufioScannerToString(file)
+		}
+		Url = strings.Split(clix.Url, ",")
 	}
-	//此处写交互模式内容
+	fmt.Println(Dir, Url)
 }
