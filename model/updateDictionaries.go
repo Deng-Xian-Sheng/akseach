@@ -39,7 +39,7 @@ func updateDictionaries(update bool) string {
 		InfoLog.Println("Test use vpn ....")
 		bytes, err = Get(GithubAgent + GithubDictionaries1)
 		if err != nil {
-			ErrorLog.Fatal("Not Get Cloud Dictionaries!")
+			ErrorLog.Panic("Not Get Cloud Dictionaries!")
 		}
 		decodeString, err := base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 		if err != nil {
@@ -49,7 +49,7 @@ func updateDictionaries(update bool) string {
 
 		bytes, err = Get(GithubAgent + GithubDictionaries2)
 		if err != nil {
-			ErrorLog.Fatal("Not Get Cloud Dictionaries!")
+			ErrorLog.Panic("Not Get Cloud Dictionaries!")
 		}
 		decodeString, err = base64.StdEncoding.DecodeString(gjson.Get(string(bytes), "body").Str)
 		if err != nil {
@@ -100,7 +100,7 @@ func UpdateDictionaries() {
 		return
 	}
 	if len(resultSlice) >= 2 {
-		ErrorLog.Fatal("There are multiple dictionary files: ", resultSlice)
+		ErrorLog.Panic("There are multiple dictionary files: ", resultSlice)
 	}
 	compile := regexp.MustCompile(DefaultDictionaries + `([0-9]{4}\-[0-9]{2}\-[0-9]{2}T[0-9]{2}\:[0-9]{2}\:[0-9]{2}Z)\.txt`)
 	if compile == nil {
@@ -119,7 +119,7 @@ func UpdateDictionaries() {
 		if err != nil {
 			PanicLog.Panic(err)
 		}
-		err := os.Remove(submatch[0][1])
+		err := os.Remove(DefaultDictionaries + submatch[0][1] + ".txt")
 		if err != nil {
 			PanicLog.Panic(err)
 		}

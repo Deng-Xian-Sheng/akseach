@@ -8,9 +8,10 @@ import (
 )
 
 type ReturnInfo struct {
-	Url  string
-	Dir  string
-	Type string
+	Url   string
+	Dir   string
+	Proxy string
+	Type  string
 }
 
 func Clix() (*ReturnInfo, error) {
@@ -29,6 +30,7 @@ func Clix() (*ReturnInfo, error) {
 		Usage:     "A catalog collection scanning tool",
 		UsageText: "./xxx [global options] [command]",
 		Flags: []cli.Flag{
+
 			&cli.StringFlag{
 				Name:        "url",
 				Aliases:     []string{"u"},
@@ -42,6 +44,13 @@ func Clix() (*ReturnInfo, error) {
 				Usage:       "DIY dictionaries file",
 				Value:       "Stillness Speaks",
 				Destination: &returnInfo.Dir,
+			},
+			&cli.StringFlag{
+				Name:        "proxy",
+				Aliases:     []string{"p"},
+				Usage:       "Proxy IP",
+				Value:       "",
+				Destination: &returnInfo.Proxy,
 			},
 		},
 		Commands: []*cli.Command{

@@ -5,14 +5,19 @@ import (
 	"os"
 )
 
-func ReadFile(path string) (*bufio.Scanner, error) {
+func ReadFile(path string) ([]string, error) {
 	file, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
-	return scanner, nil
+	scanner.Split(bufio.ScanLines)
+	var slice []string
+	for scanner.Scan() {
+		slice = append(slice, scanner.Text())
+	}
+	return slice, nil
 }
 
 func WriteFile(path string, data []byte) error {

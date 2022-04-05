@@ -2,20 +2,10 @@ package main
 
 import (
 	"akseach/model"
-	"bufio"
 	"fmt"
 	"log"
 	"strings"
 )
-
-func bufioScannerToString(file *bufio.Scanner) []string {
-	file.Split(bufio.ScanLines)
-	var slice []string
-	for file.Scan() {
-		slice = append(slice, file.Text())
-	}
-	return slice
-}
 
 func main() {
 	if model.LogOsFileErr != nil {
@@ -24,9 +14,9 @@ func main() {
 	defer model.LogOsFile.Close()
 	clix, err := model.Clix()
 	if err != nil {
-		model.ErrorLog.Fatal(err)
+		model.ErrorLog.Panic(err)
 	}
-	var Dir, Url []string
+	var Dir, Url, Proxy []string
 	switch clix.Type {
 	case "auto":
 		if clix.Dir == "Stillness Speaks" {
@@ -36,28 +26,29 @@ func main() {
 				model.PanicLog.Panic(err)
 			}
 			if len(dictionariesFile) == 0 {
-				model.ErrorLog.Fatal("not found defaultDictionaries file")
+				model.ErrorLog.Panic("not found defaultDictionaries file")
 			}
 			if len(dictionariesFile) >= 2 {
-				model.ErrorLog.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+				model.ErrorLog.Panic("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
 			}
-			file, err := model.ReadFile(dictionariesFile[0])
+			Dir, err = model.ReadFile(dictionariesFile[0])
 			if err != nil {
 				model.PanicLog.Panic(err)
 			}
-			Dir = bufioScannerToString(file)
 		} else {
-			file, err := model.ReadFile(clix.Dir)
+			Dir, err = model.ReadFile(clix.Dir)
 			if err != nil {
 				model.PanicLog.Panic(err)
 			}
-			Dir = bufioScannerToString(file)
 		}
-		file, err := model.ReadFile(clix.Url)
+		Url, err = model.ReadFile(clix.Url)
 		if err != nil {
 			model.PanicLog.Panic(err)
 		}
-		Url = bufioScannerToString(file)
+		Proxy, err = model.ReadFile(clix.Proxy)
+		if err != nil {
+			model.PanicLog.Panic(err)
+		}
 		break
 	default:
 		if clix.Dir == "Stillness Speaks" {
@@ -67,24 +58,31 @@ func main() {
 				model.PanicLog.Panic(err)
 			}
 			if len(dictionariesFile) == 0 {
-				model.ErrorLog.Fatal("not found defaultDictionaries file")
+				model.ErrorLog.Panic("not found defaultDictionaries file")
 			}
 			if len(dictionariesFile) >= 2 {
-				model.ErrorLog.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+				model.ErrorLog.Panic("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
 			}
-			file, err := model.ReadFile(dictionariesFile[0])
+			Dir, err = model.ReadFile(dictionariesFile[0])
 			if err != nil {
 				model.PanicLog.Panic(err)
 			}
-			Dir = bufioScannerToString(file)
 		} else {
-			file, err := model.ReadFile(clix.Dir)
+			Dir, err = model.ReadFile(clix.Dir)
 			if err != nil {
 				model.PanicLog.Panic(err)
 			}
-			Dir = bufioScannerToString(file)
 		}
 		Url = strings.Split(clix.Url, ",")
+		Proxy = strings.Split(clix.Proxy, ",")
+		if Proxy[0] == "" {
+			Proxy = []string{}
+		}
 	}
-	fmt.Println(Dir, Url)
+	//判断Dir、Url不等于空就执Kernel函数，否则退出
+	if len(Dir) != 0 && len(Url) != 0 {
+		model.Kernel(Dir, Url, Proxy)
+	} else {
+		model.ErrorLog.Panic("Dir or Url is empty")
+	}
 }
