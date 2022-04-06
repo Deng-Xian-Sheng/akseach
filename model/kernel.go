@@ -1,5 +1,3 @@
-//下一步，实现并发控制
-
 package model
 
 import (
@@ -30,17 +28,22 @@ func httpClient() *http.Client {
 	return &client
 }
 func Kernel(Dir, Url, Proxy []string) {
+	limiter := NewConcurrencyLimiter(10)
+	limiter.cond.L.Lock()
 	num := 1
 	sliceLowHigh := len(Url) / num
 	for i := 1; i <= num; i++ {
+		limiter.get()
 		go func(Dir, Url, Proxy []string) {
 			for _, v := range Url {
 				num := 1
 				sliceLowHigh := len(Dir) / num
 				for i := 1; i <= num; i++ {
+					limiter.get()
 					go func(Dir, Proxy []string, Url string) {
 						client := httpClient()
 						for _, j := range Dir {
+							limiter.get()
 							go func(Proxy []string, Dir, Url string) {
 								defer func() {
 									if err := recover(); err != nil {
@@ -72,7 +75,6 @@ func Kernel(Dir, Url, Proxy []string) {
 			}
 		}(Dir, Url[sliceLowHigh*(i-1):sliceLowHigh*i], Proxy)
 	}
-	for {
-
-	}
+	limiter.cond.Wait()
+	limiter.cond.L.Unlock()
 }
