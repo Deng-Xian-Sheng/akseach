@@ -1,5 +1,8 @@
 http.http
 .idea
+defDic_*
+Log.log
+.DS_Store
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
