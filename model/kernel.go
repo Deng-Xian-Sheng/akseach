@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"sync"
 	"time"
 )
 
@@ -28,22 +29,27 @@ func httpClient() *http.Client {
 	return &client
 }
 func Kernel(Dir, Url, Proxy []string) {
-	limiter := NewConcurrencyLimiter(10)
-	limiter.cond.L.Lock()
+	//计算程序耗时
+	startTime := time.Now().Unix()
+	var wg sync.WaitGroup
+	limiter := NewConcurrencyLimiter(2)
 	num := 1
 	sliceLowHigh := len(Url) / num
 	for i := 1; i <= num; i++ {
-		limiter.get()
+		wg.Add(1)
+		limiter.Get()
 		go func(Dir, Url, Proxy []string) {
 			for _, v := range Url {
 				num := 1
 				sliceLowHigh := len(Dir) / num
 				for i := 1; i <= num; i++ {
-					limiter.get()
+					wg.Add(1)
+					limiter.Get()
 					go func(Dir, Proxy []string, Url string) {
 						client := httpClient()
 						for _, j := range Dir {
-							limiter.get()
+							wg.Add(1)
+							limiter.Get()
 							go func(Proxy []string, Dir, Url string) {
 								defer func() {
 									if err := recover(); err != nil {
@@ -68,13 +74,19 @@ func Kernel(Dir, Url, Proxy []string) {
 								if result.StatusCode == 200 || result.StatusCode == 301 || result.StatusCode == 302 {
 									InfoLog.Println("Yes｜" + Url + "｜" + Dir + "｜" + Url + Dir)
 								}
+								limiter.Release()
+								wg.Done()
 							}(Proxy, j, Url)
 						}
+						limiter.Release()
+						wg.Done()
 					}(Dir[sliceLowHigh*(i-1):sliceLowHigh*i], Proxy, v)
 				}
 			}
+			limiter.Release()
+			wg.Done()
 		}(Dir, Url[sliceLowHigh*(i-1):sliceLowHigh*i], Proxy)
 	}
-	limiter.cond.Wait()
-	limiter.cond.L.Unlock()
+	wg.Wait()
+	InfoLog.Println("耗时：" + time.Now().Sub(time.Unix(startTime, 0)).String())
 }
