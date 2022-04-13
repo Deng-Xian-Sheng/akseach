@@ -90,3 +90,11 @@ func Kernel(Dir, Url, Proxy []string) {
 	wg.Wait()
 	InfoLog.Println("耗时：" + time.Now().Sub(time.Unix(startTime, 0)).String())
 }
+
+/*
+待改进：
+设置URL、目录字典合适的分片
+根据请求成功率设置同时并发线程数
+根据某个URL的请求成功率设置请求超时时间
+根据某个URL的请求成功率放弃某个URL
+*/
