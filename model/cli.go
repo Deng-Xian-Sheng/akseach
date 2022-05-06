@@ -16,6 +16,30 @@ type ReturnInfo struct {
 
 func Clix() (*ReturnInfo, error) {
 	var returnInfo ReturnInfo
+	var flags = []cli.Flag{
+		&cli.StringFlag{
+			Name:        "url",
+			Aliases:     []string{"u"},
+			Usage:       "Url target",
+			Required:    true,
+			Destination: &returnInfo.Url,
+		},
+		&cli.StringFlag{
+			Name:        "dir",
+			Aliases:     []string{"d"},
+			Usage:       "DIY dictionaries file",
+			Value:       "Stillness Speaks",
+			Destination: &returnInfo.Dir,
+		},
+		&cli.StringFlag{
+			Name:        "proxy",
+			Aliases:     []string{"p"},
+			Usage:       "Proxy IP",
+			Value:       "",
+			Destination: &returnInfo.Proxy,
+		},
+	}
+
 	app := &cli.App{
 		Name:     "Akseach",
 		Version:  "v1.0.0",
@@ -28,31 +52,8 @@ func Clix() (*ReturnInfo, error) {
 		},
 		Copyright: "(c) GPL-3.0 License",
 		Usage:     "A catalog collection scanning tool",
-		UsageText: "./xxx [global options] [command]",
-		Flags: []cli.Flag{
+		UsageText: "./xxx [command] [global options]",
 
-			&cli.StringFlag{
-				Name:        "url",
-				Aliases:     []string{"u"},
-				Usage:       "Url target",
-				Required:    true,
-				Destination: &returnInfo.Url,
-			},
-			&cli.StringFlag{
-				Name:        "dir",
-				Aliases:     []string{"d"},
-				Usage:       "DIY dictionaries file",
-				Value:       "Stillness Speaks",
-				Destination: &returnInfo.Dir,
-			},
-			&cli.StringFlag{
-				Name:        "proxy",
-				Aliases:     []string{"p"},
-				Usage:       "Proxy IP",
-				Value:       "",
-				Destination: &returnInfo.Proxy,
-			},
-		},
 		Commands: []*cli.Command{
 			{
 				Name:    "auto",
@@ -62,6 +63,7 @@ func Clix() (*ReturnInfo, error) {
 					returnInfo.Type = "auto"
 					return nil
 				},
+				Flags: flags,
 			},
 			{
 				Name:    "noAuto",
@@ -71,6 +73,7 @@ func Clix() (*ReturnInfo, error) {
 					returnInfo.Type = "noAuto"
 					return nil
 				},
+				Flags: flags,
 			},
 		},
 	}
