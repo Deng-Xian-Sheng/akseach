@@ -286,6 +286,8 @@ func (l *logger) Fatal(v ...interface{}) {
 				return
 			}
 		}
+		// 调用panic而不是os.Exit(1)；因为os.Exit(1)不能被recover()处理
+		panic(v...)
 	}
 }
 
@@ -300,8 +302,15 @@ func (l *logger) Close() {
 }
 
 var (
-	LogOsFile, LogOsFileErr = GetOsFile("./Log.log")
-	PanicLog                = log.New(io.MultiWriter(LogOsFile, os.Stdin), "[Panic]", log.Llongfile|log.LstdFlags)
-	ErrorLog                = log.New(io.MultiWriter(LogOsFile, os.Stdin), "[Error]", log.Llongfile|log.LstdFlags)
-	InfoLog                 = log.New(io.MultiWriter(LogOsFile, os.Stdin), "[Info]", log.Lshortfile|log.LstdFlags)
+	LogOsFile *os.File
+	LogWendy  Logger
 )
+
+func init() {
+	var LogOsFileErr error
+	LogOsFile, LogOsFileErr = GetOsFile("./Log.log")
+	if LogOsFileErr != nil {
+		panic(LogOsFileErr)
+	}
+	LogWendy = NewLogger([]io.Writer{os.Stdout}, []io.Writer{LogOsFile})
+}

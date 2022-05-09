@@ -3,18 +3,14 @@ package main
 import (
 	"akseach/model"
 	"fmt"
-	"log"
 	"strings"
 )
 
 func main() {
-	if model.LogOsFileErr != nil {
-		log.Panic(model.LogOsFileErr)
-	}
 	defer model.LogOsFile.Close()
 	clix, err := model.Clix()
 	if err != nil {
-		model.ErrorLog.Panic(err)
+		model.LogWendy.Fatal(err)
 	}
 	var Dir, Url, Proxy []string
 	switch clix.Type {
@@ -23,31 +19,31 @@ func main() {
 			model.UpdateDictionaries()
 			dictionariesFile, err := model.SearchDictionariesFile()
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 			if len(dictionariesFile) == 0 {
-				model.ErrorLog.Panic("not found defaultDictionaries file")
+				model.LogWendy.Fatal("not found defaultDictionaries file")
 			}
 			if len(dictionariesFile) >= 2 {
-				model.ErrorLog.Panic("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+				model.LogWendy.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
 			}
 			Dir, err = model.ReadFile(dictionariesFile[0])
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 		} else {
 			Dir, err = model.ReadFile(clix.Dir)
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 		}
 		Url, err = model.ReadFile(clix.Url)
 		if err != nil {
-			model.PanicLog.Panic(err)
+			model.LogWendy.Fatal(err)
 		}
 		Proxy, err = model.ReadFile(clix.Proxy)
 		if err != nil {
-			model.PanicLog.Panic(err)
+			model.LogWendy.Fatal(err)
 		}
 		break
 	default:
@@ -55,22 +51,22 @@ func main() {
 			model.UpdateDictionaries()
 			dictionariesFile, err := model.SearchDictionariesFile()
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 			if len(dictionariesFile) == 0 {
-				model.ErrorLog.Panic("not found defaultDictionaries file")
+				model.LogWendy.Fatal("not found defaultDictionaries file")
 			}
 			if len(dictionariesFile) >= 2 {
-				model.ErrorLog.Panic("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
+				model.LogWendy.Fatal("There are multiple dictionary files: " + fmt.Sprint(dictionariesFile))
 			}
 			Dir, err = model.ReadFile(dictionariesFile[0])
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 		} else {
 			Dir, err = model.ReadFile(clix.Dir)
 			if err != nil {
-				model.PanicLog.Panic(err)
+				model.LogWendy.Fatal(err)
 			}
 		}
 		Url = strings.Split(clix.Url, ",")
@@ -83,6 +79,6 @@ func main() {
 	if len(Dir) != 0 && len(Url) != 0 {
 		model.Kernel(Dir, Url, Proxy)
 	} else {
-		model.ErrorLog.Panic("Dir or Url is empty")
+		model.LogWendy.Fatal("Dir or Url is empty")
 	}
 }

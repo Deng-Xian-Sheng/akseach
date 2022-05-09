@@ -17,7 +17,7 @@ func httpClient() *http.Client {
 	}
 	jar, err := cookiejar.New(&options)
 	if err != nil {
-		ErrorLog.Println(err)
+		LogWendy.Warn(err)
 	}
 	client := http.Client{
 		Transport: &http.Transport{
@@ -53,13 +53,13 @@ func Kernel(Dir, Url, Proxy []string) {
 							go func(Proxy []string, Dir, Url string) {
 								defer func() {
 									if err := recover(); err != nil {
-										ErrorLog.Println(err)
+										LogWendy.Error(err)
 									}
 								}()
 								if len(Proxy) > 0 {
 									parse, err := url.Parse(Proxy[rand.Intn(len(Proxy))])
 									if err != nil {
-										ErrorLog.Panic(err)
+										LogWendy.Fatal(err)
 									}
 									client.Transport.(*http.Transport).Proxy = http.ProxyURL(parse)
 								}
@@ -69,10 +69,10 @@ func Kernel(Dir, Url, Proxy []string) {
 								}
 								result, err := client.Get(Url + Dir)
 								if err != nil {
-									ErrorLog.Panic(err)
+									LogWendy.Fatal(err)
 								}
 								if result.StatusCode == 200 || result.StatusCode == 301 || result.StatusCode == 302 {
-									InfoLog.Println("Yes｜" + Url + "｜" + Dir + "｜" + Url + Dir)
+									LogWendy.Info("Yes｜" + Url + "｜" + Dir + "｜" + Url + Dir)
 								}
 								limiter.Release()
 								wg.Done()
@@ -88,7 +88,7 @@ func Kernel(Dir, Url, Proxy []string) {
 		}(Dir, Url[sliceLowHigh*(i-1):sliceLowHigh*i], Proxy)
 	}
 	wg.Wait()
-	InfoLog.Println("耗时：" + time.Now().Sub(time.Unix(startTime, 0)).String())
+	LogWendy.Info("耗时：" + time.Now().Sub(time.Unix(startTime, 0)).String())
 }
 
 /*
