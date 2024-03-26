@@ -16,29 +16,7 @@ type ReturnInfo struct {
 
 func Clix() (*ReturnInfo, error) {
 	var returnInfo ReturnInfo
-	var flags = []cli.Flag{
-		&cli.StringFlag{
-			Name:        "url",
-			Aliases:     []string{"u"},
-			Usage:       "Url target",
-			Required:    true,
-			Destination: &returnInfo.Url,
-		},
-		&cli.StringFlag{
-			Name:        "dir",
-			Aliases:     []string{"d"},
-			Usage:       "DIY dictionaries file",
-			Value:       "Stillness Speaks",
-			Destination: &returnInfo.Dir,
-		},
-		&cli.StringFlag{
-			Name:        "proxy",
-			Aliases:     []string{"p"},
-			Usage:       "Proxy IP",
-			Value:       "",
-			Destination: &returnInfo.Proxy,
-		},
-	}
+	//var flags =
 
 	app := &cli.App{
 		Name:     "Akseach",
@@ -63,19 +41,32 @@ func Clix() (*ReturnInfo, error) {
 					returnInfo.Type = "auto"
 					return nil
 				},
-				Flags: flags,
-			},
-			{
-				Name:    "noAuto",
-				Aliases: []string{"na"},
-				Usage:   "Command input url",
-				Action: func(c *cli.Context) error {
-					returnInfo.Type = "noAuto"
-					return nil
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "url",
+						Aliases:     []string{"u"},
+						Usage:       "Url target",
+						Required:    true,
+						Destination: &returnInfo.Url,
+					},
+					&cli.StringFlag{
+						Name:        "dir",
+						Aliases:     []string{"d"},
+						Usage:       "DIY dictionaries file",
+						Value:       "Stillness Speaks",
+						Destination: &returnInfo.Dir,
+					},
+					&cli.StringFlag{
+						Name:        "proxy",
+						Aliases:     []string{"p"},
+						Usage:       "Proxy IP",
+						Value:       "",
+						Destination: &returnInfo.Proxy,
+					},
 				},
-				Flags: flags,
 			},
 		},
+		//Flags: flags,
 	}
 
 	sort.Sort(cli.FlagsByName(app.Flags))

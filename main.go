@@ -45,7 +45,6 @@ func main() {
 		if err != nil {
 			model.LogWendy.Fatal(err)
 		}
-		break
 	default:
 		if clix.Dir == "Stillness Speaks" {
 			model.UpdateDictionaries()

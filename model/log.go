@@ -287,7 +287,7 @@ func (l *logger) Fatal(v ...interface{}) {
 			}
 		}
 		// 调用panic而不是os.Exit(1)；因为os.Exit(1)不能被recover()处理
-		panic(v...)
+		panic(v)
 	}
 }
 
